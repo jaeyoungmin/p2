@@ -6,7 +6,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     isDetailShow: false,
-    currentIssue: [],
+    currentIssue: {},
     lists: [
       {
         id: 0,
@@ -81,7 +81,7 @@ export default new Vuex.Store({
         ],
       },
       {
-        id: 1,
+        id: 2,
         listId: 1,
         title: 'Hungry',
         description: ' make log in page',
@@ -117,6 +117,24 @@ export default new Vuex.Store({
     },
     setCurrentIssue(state, payload) {
       state.currentIssue = payload;
+    },
+    changeDate(state, payload) {
+      let target = state.issues.find((el) => el.id === payload.id);
+      target.dueDate = payload.dueDate;
+    },
+    editIssue(state, payload) {
+      let target = state.issues.find((el) => el.id === payload.id);
+      Object.assign(target, payload);
+    },
+    changeDescr(state, payload) {
+      let target = state.issues.find((el) => el.id === payload.id);
+      target.description = payload.descr;
+    },
+    deleteTask(state, payload) {
+      let targetIndex = state.issues.checklist.findIndex(
+        (el) => el.id === payload
+      );
+      state.issues.splice(targetIndex, 1);
     },
   },
   actions: {},
