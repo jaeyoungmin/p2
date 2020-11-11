@@ -1,33 +1,135 @@
 <template>
   <v-card width="350" class="list-box">
-    <v-row class="list-box-title" align="center" no-gutters>
-      <h3>
-        {{ list.title }} <span>id: {{ list.id }}</span>
-      </h3>
+    <v-row
+      class="box-header pl-2 align-center justify-space-between"
+      no-gutters
+    >
+      <div class="header-txt flex-grow-1">
+        <h4 v-if="!isEdit" @click="isEdit = true">{{ list.title }}</h4>
+        <v-text-field
+          v-model="listTitle"
+          class="list-title-input ml-n1 align-center"
+          flat
+          outlined
+          hide-details
+          height="32"
+          append-icon="mdi-check mt-2 mr-n2"
+          @click:append="changeListTitle"
+          @keyup.enter="changeListTitle"
+          v-else
+        ></v-text-field>
+      </div>
+      <v-menu transition="slide-y-transition" absolute>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn v-bind="attrs" v-on="on" icon>
+            <v-icon>
+              mdi-dots-horizontal
+            </v-icon>
+          </v-btn>
+        </template>
+        <v-card>
+          <v-list class="pa-0 action">
+            <v-list-item>
+              <v-list-item-title>Change List Name</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-title @click="deleteList">Delete</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
     </v-row>
     <div class="list-box-item">
-      <IssueCard v-for="(issue, i) in issueSameId" :key="i" :issue="issue" />
+      <IssueCard
+        v-for="(issue, i) in issueSameId"
+        :key="i"
+        class="issue-card"
+        :issue="issue"
+      />
     </div>
-    <div class="list-box-add">
-      <v-btn text small><v-icon>mdi-plus</v-icon>Add a list </v-btn>
+    <div class="list-box-add" v-if="!isAddCard">
+      <v-btn text small @click="isAddCard = true"
+        ><v-icon>mdi-plus</v-icon>Add a list
+      </v-btn>
+    </div>
+    <div class="mx-3 py-3" v-else>
+      <v-textarea
+        v-model="newCardTitle"
+        placeholder="Enter a title for this card..."
+        solo
+        auto-grow
+        rows="2"
+        hide-details
+        @keyup.enter="addCard"
+        class="elevation-0 mb-3"
+      ></v-textarea>
+      <v-btn color="green" dark @click="addCard">Add card</v-btn>
+      <v-btn icon @click="isAddCard = false"><v-icon>mdi-close</v-icon></v-btn>
     </div>
   </v-card>
 </template>
 
 <script>
-// import { Drag, Drop } from 'vue-drag-drop';
+import Muuri from 'muuri';
+import 'web-animations-js';
 import { mapState } from 'vuex';
+
 export default {
   name: 'ListBox',
   components: {
     IssueCard: () => import('@/components/issue_detail/IssueCard.vue'),
   },
+  mounted() {
+    let abc = new Muuri('issue-card', { dragEnabled: true });
+    console.log(abc);
+  },
+  data() {
+    return {
+      isEdit: false,
+      isAddCard: false,
+      newCardTitle: '',
+    };
+  },
   computed: {
-    ...mapState(['issues']),
+    ...mapState(['issues', 'isActionMenu']),
     issueSameId() {
       return this.issues.filter((el) => el.listId === this.list.id);
     },
+    newIssueId() {
+      return (
+        this.issues.reduce((acc, cur) => {
+          acc = Math.max(acc, cur.id);
+          return acc;
+        }, 0) + 1
+      );
+    },
   },
+  methods: {
+    changeListTitle() {
+      this.$emit('change-list-title', {
+        id: this.list.id,
+        title: this.listTitle,
+      });
+      this.isEdit = false;
+    },
+    addCard() {
+      let defaultIssueForm = {
+        id: this.newIssueId,
+        listId: this.list.id,
+        title: this.newCardTitle,
+        description: '',
+        dueDate: '',
+        checklist: [],
+        activities: [],
+      };
+      this.$store.commit('addIssue', defaultIssueForm);
+      this.newCardTitle = '';
+    },
+    deleteList() {
+      this.$store.commit('deleteList', { id: this.list.id });
+    },
+  },
+
   props: ['list'],
 };
 </script>
@@ -45,5 +147,12 @@ export default {
   .list-box-add {
     padding: 5px 0;
   }
+}
+.action:hover {
+  cursor: pointer;
+}
+.item-title-wrap:hover {
+  background: teal;
+  color: #fff;
 }
 </style>
