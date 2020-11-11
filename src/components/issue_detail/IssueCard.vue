@@ -1,5 +1,10 @@
 <template>
-  <v-card elevation="1" no-gutters class="issue-card" @click="openDetail">
+  <v-card
+    elevation="1"
+    no-gutters
+    class="issue-card card-coulmn-header coulmn-drag-handle"
+    @click="openDetail"
+  >
     <h4>{{ issue.title }}</h4>
   </v-card>
 </template>

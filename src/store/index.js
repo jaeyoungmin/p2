@@ -6,6 +6,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     isDetailShow: false,
+    isActionMenu: undefined,
     currentIssue: {},
     lists: [
       {
@@ -135,6 +136,23 @@ export default new Vuex.Store({
         (el) => el.id === payload
       );
       state.issues.splice(targetIndex, 1);
+    },
+    toggleIsActionMenu(state, payload) {
+      state.isActionMenu = payload;
+    },
+    changeListTitle(state, payload) {
+      let target = state.lists.find((el) => el.id === payload.id);
+      target.title = payload.title;
+    },
+    addIssue(state, payload) {
+      state.issues.push(payload);
+    },
+    addList(state, payload) {
+      state.lists.push(payload);
+    },
+    deleteList(state, payload) {
+      let target = state.lists.findIndex((el) => el.id === payload.id);
+      state.lists.splice(target, 1);
     },
   },
   actions: {},
