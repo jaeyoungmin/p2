@@ -154,6 +154,14 @@ export default new Vuex.Store({
       let target = state.lists.findIndex((el) => el.id === payload.id);
       state.lists.splice(target, 1);
     },
+    copyIssue(state, payload) {
+      state.issues.push(payload);
+    },
+    deleteIssue(state, payload) {
+      let target = state.issues.findIndex((el) => el.id === payload);
+      state.issues.splice(target, 1);
+      state.isDetailShow = false;
+    },
   },
   actions: {},
   modules: {},

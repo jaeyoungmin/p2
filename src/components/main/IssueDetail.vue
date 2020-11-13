@@ -35,7 +35,11 @@
             />
           </v-col>
           <v-col cols="4" class="right">
-            <Actions />
+            <Actions
+              @delete-issue="deleteIssue"
+              @copy-issue="copyIssue"
+              @move-issue="moveIssue"
+            />
           </v-col>
         </v-row>
       </v-card>
@@ -55,7 +59,17 @@ export default {
     Activity: () => import('@/components/issue_detail/Activity.vue'),
     Actions: () => import('@/components/issue_detail/Actions.vue'),
   },
-  computed: { ...mapState(['isDetailShow', 'currentIssue', 'issues']) },
+  computed: {
+    ...mapState(['isDetailShow', 'currentIssue', 'issues']),
+    newIssueId() {
+      return (
+        this.issues.reduce((acc, cur) => {
+          acc = Math.max(acc, cur.id);
+          return acc;
+        }, 0) + 1
+      );
+    },
+  },
   methods: {
     closeDetail() {
       this.$store.commit('toggleIsDetailShow');
@@ -106,6 +120,20 @@ export default {
       //comment.id와 동일한 객체의 index를 리턴
       clone.activities.splice(targetIndex, 1); //targetIndex로부터 하나 삭제
       this.$store.commit('editIssue', clone); //변경된 내용을 store에 커밋
+    },
+    moveIssue(item) {
+      let clone = _.cloneDeep(this.currentIssue);
+      clone.listId = item.id;
+      this.$store.commit('editIssue', clone);
+    },
+    copyIssue(item) {
+      let clone = _.cloneDeep(this.currentIssue);
+      clone.id = this.newIssueId;
+      clone.listId = item.id;
+      this.$store.commit('copyIssue', clone);
+    },
+    deleteIssue() {
+      this.$store.commit('deleteIssue', this.currentIssue.id);
     },
   },
 };

@@ -8,12 +8,11 @@
         <h4 v-if="!isEdit" @click="isEdit = true">{{ list.title }}</h4>
         <v-text-field
           v-model="listTitle"
-          class="list-title-input ml-n1 align-center"
+          class="list-title-input my-2"
           flat
           outlined
           hide-details
-          height="32"
-          append-icon="mdi-check mt-2 mr-n2"
+          append-icon="mdi-check "
           @click:append="changeListTitle"
           @keyup.enter="changeListTitle"
           v-else
@@ -29,11 +28,8 @@
         </template>
         <v-card>
           <v-list class="pa-0 action">
-            <v-list-item>
-              <v-list-item-title>Change List Name</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-title @click="deleteList">Delete</v-list-item-title>
+            <v-list-item @click="deleteList">
+              <v-list-item-title>Delete</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-card>
@@ -70,8 +66,6 @@
 </template>
 
 <script>
-import Muuri from 'muuri';
-import 'web-animations-js';
 import { mapState } from 'vuex';
 
 export default {
@@ -79,15 +73,13 @@ export default {
   components: {
     IssueCard: () => import('@/components/issue_detail/IssueCard.vue'),
   },
-  mounted() {
-    let abc = new Muuri('issue-card', { dragEnabled: true });
-    console.log(abc);
-  },
+
   data() {
     return {
       isEdit: false,
       isAddCard: false,
       newCardTitle: '',
+      listTitle: '',
     };
   },
   computed: {
@@ -106,10 +98,14 @@ export default {
   },
   methods: {
     changeListTitle() {
-      this.$emit('change-list-title', {
-        id: this.list.id,
-        title: this.listTitle,
-      });
+      if (this.listTitle) {
+        this.$emit('change-list-title', {
+          id: this.list.id,
+          title: this.listTitle,
+        });
+      } else {
+        this.listTitle = this.list.title;
+      }
       this.isEdit = false;
     },
     addCard() {
