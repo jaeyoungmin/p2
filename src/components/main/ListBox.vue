@@ -35,8 +35,9 @@
         </v-card>
       </v-menu>
     </v-row>
-    <div class="list-box-item">
+    <div class="list-box-item" ref="grid">
       <IssueCard
+        :id="'issue-card-' + issue.id"
         v-for="(issue, i) in issueSameId"
         :key="i"
         class="issue-card"
@@ -80,6 +81,7 @@ export default {
       isAddCard: false,
       newCardTitle: '',
       listTitle: '',
+      myMuuri: {},
     };
   },
   computed: {

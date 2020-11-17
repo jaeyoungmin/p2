@@ -7,6 +7,7 @@
     @mouseup="mouseUp"
   >
     <ListBox
+      :id="'list-box-' + list.id"
       v-for="(list, i) in lists"
       :key="i"
       :list="list"
@@ -44,6 +45,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import _ from 'lodash';
 export default {
   name: 'Main',
   components: {
@@ -56,10 +58,11 @@ export default {
       isMouseDown: false,
       errByPoint: {},
       draggingItem: undefined,
+      isDragging: false,
     };
   },
   computed: {
-    ...mapState(['lists']),
+    ...mapState(['lists', 'issues']),
     newListId() {
       return (
         this.lists.reduce((acc, cur) => {
@@ -81,17 +84,22 @@ export default {
       this.newListTitle = '';
     },
     mouseDown(e) {
+      setTimeout(() => {
+        if (this.isMouseDown) {
+          this.isDragging = true;
+          let targetIssueCard = this.findTargetEl(e.path, 'issue-card');
+          if (targetIssueCard) {
+            let cln = this.cloneTargetEl(targetIssueCard, e);
+            this.setStyleToCloneEl(cln, e, targetIssueCard);
+            this.$refs.mainView.appendChild(cln);
+          }
+        }
+      }, 1000);
       console.log('down', e);
       this.isMouseDown = true;
-      let targetIssueCard = this.findTargetEl(e);
-      if (targetIssueCard) {
-        let cln = this.cloneTargetEl(targetIssueCard, e);
-        this.setStyleToCloneEl(cln, e, targetIssueCard);
-        this.$refs.mainView.appendChild(cln);
-      }
     },
     mouseMove(e) {
-      if (this.isMouseDown && this.draggingItem) {
+      if (this.isDragging && this.draggingItem) {
         event.preventDefault();
         console.log('move', e.clientX, e.clientY);
         this.draggingItem.style.left = e.clientX - this.errByPoint.x + 'px';
@@ -101,21 +109,42 @@ export default {
     mouseUp(e) {
       console.log('up', e);
       this.isMouseDown = false;
-      if (this.draggingItem) {
-        this.$refs.mainView.removeChild(this.draggingItem);
-        this.draggingItem = undefined;
+
+      if (this.isDragging && this.draggingItem) {
+        let targetListBoxEl = this.findMoveToListBoxElementByMouseUpPosition(e);
+        if (targetListBoxEl) {
+          let targetListData = this.lists.find(
+            (item) => item.id === Number(targetListBoxEl.id.split('-')[2])
+          );
+          let toMoveIssueData = this.issues.find(
+            (item) => item.id === Number(this.draggingItem.id.split('-')[2])
+          );
+          this.moveIssueToList(toMoveIssueData, targetListData.id);
+        }
+
+        this.refreshDrag();
       }
     },
-    findMoveToListBoxByMouseUpPosition() {
-      let listboxList = Array.prototype.slice.call(
-        document.getElementsByClassName('list-box')
+    findMoveToListBoxElementByMouseUpPosition(e) {
+      return this.findTargetEl(
+        document.elementsFromPoint(e.clientX, e.clientY),
+        'list-box'
       );
-      console.log(listboxList);
     },
-    findTargetEl(e) {
-      return e.path.find((el) => {
+    moveIssueToList(targetIssue, ListBoxId) {
+      let clone = _.cloneDeep(targetIssue);
+      clone.listId = ListBoxId;
+      this.$store.commit('editIssue', clone);
+    },
+    refreshDrag() {
+      this.$refs.mainView.removeChild(this.draggingItem);
+      this.draggingItem = undefined;
+      this.isDragging = false;
+    },
+    findTargetEl(elList, className) {
+      return elList.find((el) => {
         if (el.classList) {
-          return el.classList.contains('issue-card');
+          return el.classList.contains(className);
         }
         return false;
       });
